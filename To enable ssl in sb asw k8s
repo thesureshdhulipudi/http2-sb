@@ -1,0 +1,100 @@
+
+To enable SSL for a Spring Boot application running on AWS Kubernetes (EKS), you'll need to follow these steps:
+
+1. Configure SSL in Spring Boot
+Generate SSL Certificates: Obtain or generate your SSL certificates. You can use a certificate authority like Let's Encrypt or create self-signed certificates.
+
+Add Certificates to Your Application:
+
+Place the certificate files (.crt) and private key (.key) in your Spring Boot project, or upload them to a secure location where your application can access them.
+Configure application.properties or application.yml:
+
+properties
+Copy code
+server.ssl.key-store=classpath:keystore.p12
+server.ssl.key-store-password=yourpassword
+server.ssl.key-store-type=PKCS12
+server.ssl.key-alias=youralias
+server.port=8443
+Adjust the paths and passwords according to your setup.
+
+Convert Certificates to PKCS12 Format (if needed):
+You can use the openssl tool to convert your certificates to PKCS12 format.
+
+sh
+Copy code
+openssl pkcs12 -export -in your_certificate.crt -inkey your_private.key -out keystore.p12 -name youralias
+2. Create Kubernetes Secrets
+Create a Kubernetes Secret for your SSL certificate and key:
+sh
+Copy code
+kubectl create secret generic ssl-certs \
+  --from-file=keystore.p12=path/to/keystore.p12
+3. Update Kubernetes Deployment
+Modify your Kubernetes Deployment to mount the secret as a volume:
+
+yaml
+Copy code
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: your-app
+spec:
+  template:
+    spec:
+      containers:
+        - name: your-app-container
+          image: your-image
+          ports:
+            - containerPort: 8443
+          volumeMounts:
+            - name: ssl-certs
+              mountPath: /path/to/keystore
+              subPath: keystore.p12
+      volumes:
+        - name: ssl-certs
+          secret:
+            secretName: ssl-certs
+Update the Spring Boot application configuration in your deployment to point to the mounted certificate:
+
+yaml
+Copy code
+- name: JAVA_OPTS
+  value: "-Dserver.ssl.key-store=/path/to/keystore/keystore.p12 -Dserver.ssl.key-store-password=yourpassword"
+4. Update Ingress Controller (Optional)
+If you are using an Ingress controller (like NGINX or AWS ALB) and want to terminate SSL at the ingress level:
+
+Create an Ingress Resource with SSL termination:
+
+yaml
+Copy code
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: your-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"  # or "alb" if using AWS ALB
+spec:
+  tls:
+    - hosts:
+      - yourdomain.com
+      secretName: your-tls-secret
+  rules:
+    - host: yourdomain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: your-service
+                port:
+                  number: 80
+Create a Kubernetes Secret for the TLS Certificate:
+
+sh
+Copy code
+kubectl create secret tls your-tls-secret \
+  --cert=path/to/tls.crt \
+  --key=path/to/tls.key
+After these steps, your Spring Boot application should be accessible via HTTPS. Make sure to test the configuration and verify that SSL is working as expecte
