@@ -1,0 +1,15 @@
+//Convert to .p12 format: Use the openssl command to combine these into a .p12 file.
+openssl pkcs12 -export \
+  -in certificate.pem \
+  -inkey private-key.pem \
+  -out keystore.p12 \
+  -name "myalias" \
+  -CAfile ca-bundle.pem \
+  -caname "root"
+
+
+  //sb
+  server.ssl.key-store=classpath:keystore.p12
+server.ssl.key-store-password=your-password
+server.ssl.key-store-type=PKCS12
+server.ssl.key-alias=myalias
