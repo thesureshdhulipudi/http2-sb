@@ -100,10 +100,8 @@ kubectl create secret tls your-tls-secret \
 After these steps, your Spring Boot application should be accessible via HTTPS. Make sure to test the configuration and verify that SSL is working as expected
 
 
-We have implimented the API cache for below APIs using local storage, with that API calls was reduced to 55% approximently.
-Taken the 3 days of API count of before and after Cache deployments. Hence 55% of network trafic has reduced for those 5 API's.
-Below is the output we can see redendention of API hits
+We have implemented API caching for the following endpoints using local storage. We analyzed API usage over a 3-day period before and after deploying the cache. As a result, we observed a 55% reduction in network traffic for these 5 APIs. The output below shows the reduction in redundant API hits.
 
 
 
-We have Captured 10 times of the API call time duration which are using in page load for 10 times, the average of 10 times page load to compleate with out cache is 4.545 milliseconds and with cache it has taken 4.053 milliseconds. Hence 0.493 milliseconds has improved.
+We measured the API call duration during page loads 10 times. On average, the page load time without caching was 4.545 milliseconds, while with caching, it decreased to 4.053 milliseconds. This improvement resulted in a 0.493-millisecond reduction in load time.
